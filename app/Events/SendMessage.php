@@ -15,16 +15,17 @@ class SendMessage implements ShouldBroadcastNow
 {
     use InteractsWithSockets, SerializesModels;
 
-    public $message;
+    public $data;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($message)
+    public function __construct($data)
     {
-        $this->message = $message;
+        $this->data = $data;
+        $this->dontBroadcastToCurrentUser();
     }
 
     /**
@@ -34,7 +35,7 @@ class SendMessage implements ShouldBroadcastNow
      */
     public function broadcastOn()
     {
-        return new Channel('user-channel');
+        return new PrivateChannel('dialog.'. $this->data['dialog_id']);
     }
 
     /**
@@ -44,6 +45,6 @@ class SendMessage implements ShouldBroadcastNow
      */
     public function broadcastAs()
     {
-        return 'UserEvent';
+        return 'SendMessage';
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,10 +20,19 @@ Route::get('/', function () {
 });
 
 Route::get('/chat', function() {
-    return view('app');
-});
-
+    return view('chat');
+})->middleware('auth:sanctum');
 
 Route::post('messages', function (\Illuminate\Http\Request $request) {
-    event(new \App\Events\SendMessage($request->input('body')));
-});
+    event(new \App\Events\SendMessage($request->all()));
+
+    dispatch(new \App\Jobs\WriteMessageFromChatIntoDB($request->all()))->afterResponse();
+})->middleware('auth:sanctum');
+
+Route::get('/dialog/{dialog}', function (App\Models\Dialog $dialog) {
+    return response()->json($dialog, 200);
+})->middleware('auth:sanctum');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
